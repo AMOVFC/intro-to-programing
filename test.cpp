@@ -58,40 +58,15 @@ boolean recersiveplotshot(int ox, int oy, int startspeed, int angle, int time, d
 	}recersiveplotshot(ox, oy, startspeed, angle, time, counter + 0.025);
 
 }
-/*
-boolean plotshot(int ox, int oy, int startspeed, int angle){
-	const int total_time = 100;
-	double height_list[total_time] = {};
-	double distance_list[total_time] = {};
-	for (int i = 0; i < total_time; ++i) {
-		height_list[i] = heightattime(startspeed, angle, i);
-		distance_list[i] = distanceattime(startspeed, angle, i);
-		set_pen_color(1.0, i*0.1,0);
-		if (oy - height_list[i] >= 500) {
-			if (ox + distance_list[i-1] > 800) {
-				if (ox + distance_list[i-1] < 950) {
-					move_to(500,250);
-					set_pen_color(color::black);
-					write_string("You hit the house!");
-					return true;
-				}
-				move_to(500, 250);
-				set_pen_color(color::black);
-				write_string("Your shot went over the house");
-				return false;
-				}
-			move_to(500, 250);
-			set_pen_color(color::black);
-			write_string("Your shot hit the ground");
-			return false;
-		}
-		move_to(ox+distance_list[i], oy-height_list[i]);
-		set_heading_degrees(0);
-		set_pen_width(5);
-		draw_distance(1);
+
+void shouldjustbeaforloop(double x, int y, int z) {
+	if (z > 0) {
+		set_pen_color(color::black);
+		draw_distance(x);
+		turn_right_by_degrees(y);
+		shouldjustbeaforloop(x, y, z - 1);
 	}
-} 
-*/
+}
 
 void drawhouse(int xh, int yh) {
 	set_pen_color(color::black);
@@ -147,11 +122,10 @@ void drawcannon(int xg, int yg, int degrees){
 	move_to(xg, yg);
 	set_heading_degrees(90);
 	double step = (2 * pi * 10) / 360;
-	for (int i = 1; i <= 360; ++i) {
-		draw_distance(step);
-		turn_right_by_degrees(1);
+	shouldjustbeaforloop(step, 1, 360);
 	}
-	}
+
+
 
 void setup(int angle) {
 	make_window(1000, 500);
