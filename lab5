@@ -1,0 +1,183 @@
+//lab 5
+//Andre Miguel Oliu Vakil Fernandes Cardoso
+
+#include "library.h"
+
+void draw_clock_face() {
+	
+}
+
+void draw_tick_rec(int i, int n, int cx, int cy, int r) {
+	if (i >= n) return;
+
+	int angle = -90 + i * 30;                 // start at 12 o'clock, every 30°
+	int len = (i % 3 == 0) ? 25 : 15;       // longer at 12/3/6/9
+
+	move_to(cx, cy);                          // from center...
+	set_heading_degrees(angle);               // ...aim toward rim
+	move_distance(r - len);                   // hop out (no drawing)
+	draw_distance(len);                       // draw the tick outward to the rim
+
+	draw_tick_rec(i + 1, n, cx, cy, r);       // next tick
+}
+
+void draw_clock_recursive() {
+	make_window(400, 600);
+	set_pen_color(color::black);
+
+	const int r = 190;
+	const int cy = 300;
+	const int left_x = 10;
+	const int cx = left_x + r;
+
+	move_to(left_x, cy);                      // leftmost point
+	round(r);                                 // draw circle
+
+	draw_tick_rec(0, 12, cx, cy, r);          // 12 radial ticks
+}
+
+
+void shouldjustbeaforloop(double x, int y, int z) {
+	if (z > 0) {
+		set_pen_color(color::black);
+		draw_distance(x);
+		turn_right_by_degrees(y);
+		shouldjustbeaforloop(x, y, z - 1);
+	}
+}
+
+void round(int size) {
+	const double pi = acos(-1.0);
+	double step = (2 * pi * size) / 360;
+	shouldjustbeaforloop(step, 1, 360);
+}
+
+
+
+void main() {
+	const int current_time = get_clock_time();
+	const int current_date = get_calendar_date();
+	print(current_time);
+	// time: HHMM
+	const int hour24 = current_time / 10000;   // 12
+	const int minute = (current_time % 10000)/100;   // 10
+
+	// date: YYYYMMDD
+	const int year = current_date / 10000;          // 2025
+	const int month = (current_date / 100) % 100;    // 9
+	const int day = current_date % 100;            // 30
+	new_line();
+	print("  year: ");
+	print(year);
+	new_line();
+
+	print(" month: ");
+	print(month);
+	new_line();
+
+	print("   day: ");
+	print(day);
+	new_line();
+
+	bool isPM = false;
+	
+
+	if (hour24 > 12){
+		print("  hour: ");
+		print(hour24 -12);
+		isPM = true;
+		print(" PM");
+		new_line();
+	}
+	else {
+		print("  hour: ");
+		print(hour24);
+		print(" AM");
+		new_line();
+	}
+	print("minute: ");
+	print(minute);
+	new_line();
+
+
+
+
+	// part 2
+
+	print("date: ");	print(year);	print("-"); print(month);	print("-"); print(day);
+	new_line();
+	print(" time: "); print(hour24-12); print(":"); print(minute); if (isPM) { print(" P.M."); }
+	else { print("A.M."); }
+	draw_clock_recursive();
+	set_pen_color(color::black);
+	move_to(10, 300);
+	set_heading_degrees(0);
+	round(190);
+	string m = "";
+	if (month == 1) {
+		m = "January";
+	}
+	else if (month == 2) {
+		m = "February";
+	}
+	else if (month == 3) {
+		m = "March";
+	}
+	else if (month == 4) {
+		m = "April";
+	}
+	else if (month == 5) {
+		m = "May";
+	}
+	else if (month == 6) {
+		m = "June";
+	}
+	else if (month == 7) {
+		m = "July";
+	}
+	else if (month == 8) {
+		m = "August";
+	}
+	else if (month == 9) {
+		m = "September";
+	}
+	else if (month == 10) {
+		m = "October";
+	}
+	else if (month == 11) {
+		m = "November";
+	}
+	else if (month == 12) {
+		m = "December";
+	}
+	else {
+		m = "Invalid month";
+	}
+
+	string postsuffix = "th ";
+
+	if (day > 22) {
+		postsuffix = "rd ";
+	}
+	move_to(10, 40);
+	write_string(day);
+	write_string(postsuffix);
+	write_string(m);
+	move_to(10, 60);
+	write_string(year);
+	move_to(10, 550);
+	write_string(hour24 - 12);
+	write_string(":");
+	write_string(minute);
+	if (isPM) { write_string(" P.M."); }
+	else { write_string(" A.M."); }
+
+
+
+
+}
+
+
+
+
+//rabiit user name axo932@miami.edu
