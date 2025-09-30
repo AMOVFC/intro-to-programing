@@ -7,6 +7,70 @@ void draw_clock_face() {
 	
 }
 
+void add_text(int year, int month, int day, int hour24, int minute, bool isPM) {
+
+	string m = "";
+	if (month == 1) {
+		m = "January";
+	}
+	else if (month == 2) {
+		m = "February";
+	}
+	else if (month == 3) {
+		m = "March";
+	}
+	else if (month == 4) {
+		m = "April";
+	}
+	else if (month == 5) {
+		m = "May";
+	}
+	else if (month == 6) {
+		m = "June";
+	}
+	else if (month == 7) {
+		m = "July";
+	}
+	else if (month == 8) {
+		m = "August";
+	}
+	else if (month == 9) {
+		m = "September";
+	}
+	else if (month == 10) {
+		m = "October";
+	}
+	else if (month == 11) {
+		m = "November";
+	}
+	else if (month == 12) {
+		m = "December";
+	}
+	else {
+		m = "Invalid month";
+	}
+
+	string postsuffix = "th ";
+
+	if (day > 22) {
+		postsuffix = "rd ";
+	}
+
+	move_to(10, 40);
+	write_string(day);
+	write_string(postsuffix);
+	write_string(m);
+	move_to(10, 60);
+	write_string(year);
+	move_to(10, 550);
+	write_string(hour24 - 12);
+	write_string(":");
+	write_string(minute);
+	if (isPM) { write_string(" P.M."); }
+	else { write_string(" A.M."); }
+
+}
+
 void draw_tick_rec(int i, int n, int cx, int cy, int r) {
 	if (i >= n) return;
 
@@ -113,67 +177,7 @@ void main() {
 	move_to(10, 300);
 	set_heading_degrees(0);
 	round(190);
-	string m = "";
-	if (month == 1) {
-		m = "January";
-	}
-	else if (month == 2) {
-		m = "February";
-	}
-	else if (month == 3) {
-		m = "March";
-	}
-	else if (month == 4) {
-		m = "April";
-	}
-	else if (month == 5) {
-		m = "May";
-	}
-	else if (month == 6) {
-		m = "June";
-	}
-	else if (month == 7) {
-		m = "July";
-	}
-	else if (month == 8) {
-		m = "August";
-	}
-	else if (month == 9) {
-		m = "September";
-	}
-	else if (month == 10) {
-		m = "October";
-	}
-	else if (month == 11) {
-		m = "November";
-	}
-	else if (month == 12) {
-		m = "December";
-	}
-	else {
-		m = "Invalid month";
-	}
-
-	string postsuffix = "th ";
-
-	if (day > 22) {
-		postsuffix = "rd ";
-	}
-	move_to(10, 40);
-	write_string(day);
-	write_string(postsuffix);
-	write_string(m);
-	move_to(10, 60);
-	write_string(year);
-	move_to(10, 550);
-	write_string(hour24 - 12);
-	write_string(":");
-	write_string(minute);
-	if (isPM) { write_string(" P.M."); }
-	else { write_string(" A.M."); }
-
-
-
+	add_text(year, month, day, hour24, minute, isPM);
 
 }
 
