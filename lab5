@@ -3,58 +3,27 @@
 
 #include "library.h"
 
-void draw_clock_face() {
-	
-}
-
 void add_text(int year, int month, int day, int hour24, int minute, bool isPM) {
-
 	string m = "";
-	if (month == 1) {
-		m = "January";
-	}
-	else if (month == 2) {
-		m = "February";
-	}
-	else if (month == 3) {
-		m = "March";
-	}
-	else if (month == 4) {
-		m = "April";
-	}
-	else if (month == 5) {
-		m = "May";
-	}
-	else if (month == 6) {
-		m = "June";
-	}
-	else if (month == 7) {
-		m = "July";
-	}
-	else if (month == 8) {
-		m = "August";
-	}
-	else if (month == 9) {
-		m = "September";
-	}
-	else if (month == 10) {
-		m = "October";
-	}
-	else if (month == 11) {
-		m = "November";
-	}
-	else if (month == 12) {
-		m = "December";
-	}
-	else {
-		m = "Invalid month";
-	}
+	if (month == 1) { m = "January"; }
+	else if (month == 2) { m = "February"; }
+	else if (month == 3) { m = "March"; }
+	else if (month == 4) { m = "April"; }
+	else if (month == 5) { m = "May"; }
+	else if (month == 6) { m = "June"; }
+	else if (month == 7) { m = "July"; }
+	else if (month == 8) { m = "August"; }
+	else if (month == 9) { m = "September"; }
+	else if (month == 10) { m = "October"; }
+	else if (month == 11) { m = "November"; }
+	else if (month == 12) { m = "December"; }
+	else { m = "Invalid month"; }
 
 	string postsuffix = "th ";
-
-	if (day > 22) {
-		postsuffix = "rd ";
-	}
+	int mod100 = day % 100;
+	if (mod100 == 1 && day != 11) postsuffix = "st ";
+	else if (mod100 == 2 && day != 12) postsuffix = "nd ";
+	else if (mod100 == 3 && day != 13) postsuffix = "rd ";
 
 	move_to(10, 40);
 	write_string(day);
@@ -62,44 +31,39 @@ void add_text(int year, int month, int day, int hour24, int minute, bool isPM) {
 	write_string(m);
 	move_to(10, 60);
 	write_string(year);
+
 	move_to(10, 550);
-	write_string(hour24 - 12);
+	int h12 = hour24 % 12; if (h12 == 0) h12 = 12;
+	write_string(h12);
 	write_string(":");
+	if (minute < 10) write_string("0");
 	write_string(minute);
 	if (isPM) { write_string(" P.M."); }
 	else { write_string(" A.M."); }
-
 }
 
 void draw_tick_rec(int i, int n, int cx, int cy, int r) {
 	if (i >= n) return;
-
-	int angle = -90 + i * 30;                 // start at 12 o'clock, every 30°
-	int len = (i % 3 == 0) ? 25 : 15;       // longer at 12/3/6/9
-
-	move_to(cx, cy);                          // from center...
-	set_heading_degrees(angle);               // ...aim toward rim
-	move_distance(r - len);                   // hop out (no drawing)
-	draw_distance(len);                       // draw the tick outward to the rim
-
-	draw_tick_rec(i + 1, n, cx, cy, r);       // next tick
+	int angle = -90 + i * 30;
+	int len = (i % 3 == 0) ? 25 : 15;
+	move_to(cx, cy);
+	set_heading_degrees(angle);
+	move_distance(r - len);
+	draw_distance(len);
+	draw_tick_rec(i + 1, n, cx, cy, r);
 }
 
-void draw_clock_recursive() {
-	make_window(400, 600);
+void draw_hand(int cx, int cy, int angle_deg, int length, int width) {
 	set_pen_color(color::black);
-
-	const int r = 190;
-	const int cy = 300;
-	const int left_x = 10;
-	const int cx = left_x + r;
-
-	move_to(left_x, cy);                      // leftmost point
-	round(r);                                 // draw circle
-
-	draw_tick_rec(0, 12, cx, cy, r);          // 12 radial ticks
+	set_pen_width(width);
+	move_to(cx, cy);
+	set_heading_degrees(angle_deg+90);
+	draw_distance(length);
 }
 
+inline int hour_angle(int h, int m) { return -90 + (h % 12) * 30 + m / 2; }
+inline int minute_angle(int m) { return -90 + m * 6; }
+inline int second_angle(int s) { return -90 + s * 6; }
 
 void shouldjustbeaforloop(double x, int y, int z) {
 	if (z > 0) {
@@ -116,72 +80,43 @@ void round(int size) {
 	shouldjustbeaforloop(step, 1, 360);
 }
 
+void draw_clock_face(int cx, int cy, int r) {
+	move_to(cx - r, cy);
+	set_heading_degrees(0);
+	round(r);
+	draw_tick_rec(0, 12, cx, cy, r);
+}
 
+void animate_clock(int cx, int cy, int r, int year, int month, int day) {
+	const int hour_len = r - 70;
+	const int minute_len = r - 35;
+	const int second_len = r - 25;
+	while (true) {
+		clear();
+		draw_clock_face(cx, cy, r);
+		int t = get_clock_time();
+		int h = t / 10000;
+		int m = (t / 100) % 100;
+		int s = t % 100;
+		bool isPM = false;
+		if (h >= 12) isPM = true;
+		draw_hand(cx, cy, hour_angle(h, m), hour_len, 5);
+		draw_hand(cx, cy, minute_angle(m), minute_len, 3);
+		draw_hand(cx, cy, second_angle(s), second_len, 1);
+		add_text(year, month, day, h, m, isPM);
+		sleep(1);
+	}
+}
 
 void main() {
 	const int current_time = get_clock_time();
 	const int current_date = get_calendar_date();
-	print(current_time);
-	// time: HHMM
-	const int hour24 = current_time / 10000;   // 12
-	const int minute = (current_time % 10000)/100;   // 10
-
-	// date: YYYYMMDD
-	const int year = current_date / 10000;          // 2025
-	const int month = (current_date / 100) % 100;    // 9
-	const int day = current_date % 100;            // 30
-	new_line();
-	print("  year: ");
-	print(year);
-	new_line();
-
-	print(" month: ");
-	print(month);
-	new_line();
-
-	print("   day: ");
-	print(day);
-	new_line();
-
-	bool isPM = false;
-	
-
-	if (hour24 > 12){
-		print("  hour: ");
-		print(hour24 -12);
-		isPM = true;
-		print(" PM");
-		new_line();
-	}
-	else {
-		print("  hour: ");
-		print(hour24);
-		print(" AM");
-		new_line();
-	}
-	print("minute: ");
-	print(minute);
-	new_line();
-
-
-
-
-	// part 2
-
-	print("date: ");	print(year);	print("-"); print(month);	print("-"); print(day);
-	new_line();
-	print(" time: "); print(hour24-12); print(":"); print(minute); if (isPM) { print(" P.M."); }
-	else { print("A.M."); }
-	draw_clock_recursive();
-	set_pen_color(color::black);
-	move_to(10, 300);
-	set_heading_degrees(0);
-	round(190);
-	add_text(year, month, day, hour24, minute, isPM);
-
+	const int year = current_date / 10000;
+	const int month = (current_date / 100) % 100;
+	const int day = current_date % 100;
+	make_window(400, 600);
+	const int r = 190;
+	const int cy = 300;
+	const int cx = 10 + r;
+	animate_clock(cx, cy, r, year, month, day);
 }
-
-
-
-
-//rabiit user name axo932@miami.edu
