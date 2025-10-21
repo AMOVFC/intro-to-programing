@@ -1,0 +1,196 @@
+#include "library.h"
+
+int rand_in(const int min_val, const int max_val) { return random_in_range(min_val, max_val); }
+
+int rand_color_shade(const int base_color, const double variance) {
+    double r, g, b;
+    split_color(base_color, r, g, b);
+    const double dR = (rand_in(-100, 100) / 100.0) * variance;
+    const double dG = (rand_in(-100, 100) / 100.0) * variance;
+    const double dB = (rand_in(-100, 100) / 100.0) * variance;
+    const double R = (r + dR < 0) ? 0 : ((r + dR > 1) ? 1 : r + dR);
+    const double G = (g + dG < 0) ? 0 : ((g + dG > 1) ? 1 : g + dG);
+    const double B = (b + dB < 0) ? 0 : ((b + dB > 1) ? 1 : b + dB);
+    return make_color(R, G, B);
+}
+
+int get_window_width(const int building_width, const int windows_per_floor) {
+    return building_width / (windows_per_floor + 1);
+}
+
+int get_building_height(const int floors, const int window_height) {
+    return floors * (window_height + 12) + 100;
+}
+
+int get_house_height(const int floors, const int window_height) {
+    return floors * (window_height + 15) + 40;
+}
+
+void draw_window(const int x, const int y, const int w, const int h, const int color) {
+    set_pen_color(color);
+    fill_rectangle(x, y, w, h, color);
+}
+
+void draw_row(const int count, const int i, const int start_x, const int y,
+    const int w, const int h, const int color, const int spacing) {
+    if (i >= count) return;
+    const int x = start_x + i * (w + spacing);
+    draw_window(x, y, w, h, color);
+    draw_row(count, i + 1, start_x, y, w, h, color, spacing);
+}
+
+void draw_block(const int floors, const int f, const int windows_per_floor,
+    const int start_x, const int start_y, const int w, const int h,
+    const int color, const int v_spacing, const int h_spacing) {
+    if (f >= floors) return;
+    const int y = start_y - f * (h + v_spacing);
+    draw_row(windows_per_floor, 0, start_x, y, w, h, color, h_spacing);
+    draw_block(floors, f + 1, windows_per_floor, start_x, start_y, w, h,
+        color, v_spacing, h_spacing);
+}
+
+
+void draw_office_building(const int start_x, const int ground_y, const int width) {
+    const int floors = rand_in(6, 14);
+    const int windows_per_floor = rand_in(3, 8);
+    const int window_w = get_window_width(width, windows_per_floor);
+    const int window_h = rand_in(15, 25);
+    const int height = get_building_height(floors, window_h);
+
+    const int body_color = rand_color_shade(color::light_grey, 0.25);
+    const int window_color = color::light_blue;
+    const int roof_color = rand_color_shade(color::dark_grey, 0.4);
+
+    fill_rectangle(start_x, ground_y - height, width, height, body_color);
+
+    const int wx0 = start_x + window_w / 2;
+    const int wy0 = ground_y - 40;
+    draw_block(floors, 0, windows_per_floor, wx0, wy0,
+        window_w - 5, window_h, window_color, 8, 5);
+
+    fill_rectangle(start_x, ground_y - height - 10, width, 10, roof_color);
+}
+
+void draw_house(const int start_x, const int ground_y, const int width) {
+    const int floors = rand_in(1, 2);
+    const int windows_per_floor = rand_in(2, 4);
+    const int window_w = get_window_width(width, windows_per_floor);
+    const int window_h = 20;
+    const int height = get_house_height(floors, window_h);
+
+    const int wall_color = rand_color_shade(color::brown, 0.25);
+    const int window_color = color::yellow;
+    const int roof_color = rand_color_shade(color::red, 0.35);
+
+    fill_rectangle(start_x, ground_y - height, width, height, wall_color);
+
+    const int wx0 = start_x + window_w / 2;
+    const int wy0 = ground_y - 40;
+    draw_block(floors, 0, windows_per_floor, wx0, wy0,
+        window_w - 5, window_h, window_color, 8, 5);
+    move_to(start_x, ground_y - height);
+    draw_to(start_x + width / 2, ground_y - height - 40);
+    draw_to(start_x + width, ground_y - height);
+    fill_shape();
+
+    const int feature = rand_in(1, 5);
+    if (feature == 1) {
+        const int cx = start_x + rand_in(width / 3, 2 * width / 3);
+        fill_rectangle(cx, ground_y - height - 40, 10, 30, color::dark_grey);
+    }
+    else if (feature == 2) {
+        const int fx = start_x + width - 10;
+        const int fy = ground_y - height - 40;
+        fill_rectangle(fx, fy, 3, 40, color::black);
+        fill_rectangle(fx + 3, fy + 20, 20, 10, color::red);
+    }
+    else if (feature == 3) {
+        fill_rectangle(start_x - 5, ground_y - 15, width + 10, 10, color::dark_grey);
+    }
+}
+
+void draw_tree_leaves(const int n, const int i,
+    const int x, const int ground_y,
+    const int h, const int foliage, const int green) {
+    if (i >= n) return;
+    const int dx = rand_in(-foliage, foliage);
+    const int dy = rand_in(-foliage, foliage);
+    fill_rectangle(x - 10 + dx, ground_y - h - 20 + dy, 20, 20, green);
+    draw_tree_leaves(n, i + 1, x, ground_y, h, foliage, green);
+}
+
+void draw_tree(const int x, const int ground_y) {
+    const int h = rand_in(60, 120);
+    const int w = rand_in(15, 25);
+    const int foliage = rand_in(25, 35);
+    const int green = rand_color_shade(color::green, 0.3);
+
+    fill_rectangle(x, ground_y - h, w, h, color::brown);
+    draw_tree_leaves(10, 0, x, ground_y, h, foliage, green);
+}
+
+void draw_trees(const int count, const int i, const int screen_w, const int ground_y) {
+    if (i >= count) return;
+    const int tx = rand_in(20, screen_w - 40);
+    draw_tree(tx, ground_y);
+    draw_trees(count, i + 1, screen_w, ground_y);
+}
+
+void draw_car(const int start_x, const int ground_y) {
+    const int car_w = rand_in(70, 110);
+    const int car_h = 30;
+    const int wheel_r = 10;
+    const int body_color = rand_color_shade(color::blue, 0.4);
+
+    fill_rectangle(start_x, ground_y - car_h - 5, car_w, car_h, body_color);
+    fill_rectangle(start_x + 10, ground_y - wheel_r, wheel_r, wheel_r, color::black);
+    fill_rectangle(start_x + car_w - 25, ground_y - wheel_r, wheel_r, wheel_r, color::black);
+}
+
+void draw_background(const int screen_w, const int screen_h) {
+    const int day = rand_in(0, 1);
+    if (day == 0) {
+        fill_rectangle(0, 0, screen_w, screen_h, make_color(0.5, 0.7, 1.0));
+        fill_rectangle(100, 400, 60, 60, color::yellow);
+    }
+    else {
+        fill_rectangle(0, 0, screen_w, screen_h, make_color(0.05, 0.05, 0.2));
+        fill_rectangle(100, 400, 50, 50, color::white);
+    }
+}
+
+void draw_city_row(const int x, const int ground_y, const int screen_w) {
+    if (x >= screen_w - 100) return;
+    const int type = rand_in(0, 1);
+    const int width = rand_in(90, 180);
+    if (type == 0)
+        draw_office_building(x, ground_y, width);
+    else
+        draw_house(x, ground_y, width);
+
+    const int next_x = x + width + rand_in(20, 50);
+    draw_city_row(next_x, ground_y, screen_w);
+}
+
+void main() {
+    const int SCREEN_W = 800;
+    const int SCREEN_H = 600;
+    const int GROUND_Y = 500;
+
+    make_window(SCREEN_W, SCREEN_H);
+
+    draw_background(SCREEN_W, SCREEN_H);
+    fill_rectangle(0, GROUND_Y, SCREEN_W, 100, color::dark_green);
+
+    draw_city_row(0, GROUND_Y, SCREEN_W);
+    draw_trees(6, 0, SCREEN_W, GROUND_Y);
+
+    if (rand_in(0, 1) == 1)
+        draw_car(rand_in(50, SCREEN_W - 150), GROUND_Y + 10);
+
+    set_pen_color(color::black);
+    move_to(10, 10);
+
+    wait_for_mouse_click();
+}
+
